@@ -44,8 +44,8 @@ void TGU_Setup(void)
 
 	for (i = 0; i < ARRAY_SIZE(ns_regions); i++) {
 		if (ns_regions[i].type == DTCM) {
-			start_block =  (ns_regions[i].start - DTCM_BASE) / dtcm_blksize;
-			end_block = (ns_regions[i].end - DTCM_BASE) / dtcm_blksize;
+			start_block =  (ns_regions[i].start - DTCM_BASE + RESERVED_DTCM_SIZE) / dtcm_blksize;
+			end_block = (ns_regions[i].end - DTCM_BASE + RESERVED_DTCM_SIZE) / dtcm_blksize;
 			base = DTGU_BASE;
 		} else {
 			start_block =  (ns_regions[i].start - ITCM_BASE) / itcm_blksize;

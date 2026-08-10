@@ -48,5 +48,14 @@ int alif_ble_mutex_lock(k_timeout_t timeout);
  */
 void alif_ble_mutex_unlock(void);
 
+/**
+ * @brief Clear BLE initialisation state before rebooting.
+ *
+ * Must be called before sys_reboot() to force a cold BLE start on the next
+ * boot. Without this, the warm-restart path in alif_ble_enable() skips
+ * gapm_configure() and callback registration, causing BLE advertising not
+ * to start after an OTA reboot or any other warm reset.
+ */
+void alif_ble_reset_init_state(void);
 
 #endif /* _ALIF_BLE_H */

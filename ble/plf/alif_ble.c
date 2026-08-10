@@ -176,6 +176,17 @@ void alif_ble_mutex_unlock(void)
 	k_mutex_unlock(&rwip_process_mutex);
 }
 
+void alif_ble_reset_init_state(void)
+{
+	/* Force a cold BLE start on the next boot.
+	 * Call this before sys_reboot() (e.g. after OTA or explicit reboot) so
+	 * that alif_ble_enable() does not take the warm-restart path and
+	 * the BLE stack + GAPM callbacks are fully re-initialised with the
+	 * new firmware's function addresses.
+	 */
+	initialised = 0;
+}
+
 static void gapm_reset_cb(uint32_t metainfo, uint16_t status)
 {
 	LOG_DBG("GAPM RESET status: 0x%02x", status);
@@ -184,10 +195,13 @@ static void gapm_reset_cb(uint32_t metainfo, uint16_t status)
 
 static void ble_task(void *dummy1, void *dummy2, void *dummy3)
 {
-	int ret = 0;
+	int ret;
 
 	ret = hci_uart_init();
-	__ASSERT(0 == ret, "Failed to initialise HCI UART");
+	__ASSERT(!ret, "Failed to initialise HCI UART");
+
+	ret = sync_timer_init();
+	__ASSERT(!ret, "Failed to initialise sync timer");
 
 #if DEINITIALISED_MAGIC
 	if (initialised == DEINITIALISED_MAGIC) {
@@ -199,8 +213,8 @@ static void ble_task(void *dummy1, void *dummy2, void *dummy3)
 	if (initialised != INITIALISED_MAGIC) {
 		LOG_DBG("Cold start");
 
-		ret = sync_timer_init();
-		__ASSERT(0 == ret, "Failed to initialise sync timer");
+		ret = sync_timer_reset();
+		__ASSERT(!ret, "Failed to reset sync timer");
 
 		/* hci_open calls this so should not be called here */
 		if (0 != take_es0_into_use()) {
@@ -223,6 +237,8 @@ static void ble_task(void *dummy1, void *dummy2, void *dummy3)
 		app_hooks.p_app_init();
 		k_sem_give(&rwip_schedule_sem);
 	}
+
+	sync_timer_start(NULL, NULL); // Enable sync timer IRQs every time BLE stack is started
 
 	LOG_DBG("task starting event loop");
 

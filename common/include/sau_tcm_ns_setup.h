@@ -17,6 +17,11 @@ extern "C" {
 #define ITCM_BASE DT_REG_ADDR(DT_NODELABEL(itcm))
 #define ITCM_END (DTCM_BASE + DT_REG_SIZE(DT_NODELABEL(itcm)))
 
+#define RESERVED_DTCM_BASE DT_REG_ADDR(DT_NODELABEL(reserved_dtcm))
+#define RESERVED_DTCM_END (RESERVED_DTCM_BASE + DT_REG_SIZE(DT_NODELABEL(reserved_dtcm)))
+#define RESERVED_DTCM_SIZE DT_REG_SIZE(DT_NODELABEL(reserved_dtcm))
+
+
 /* NS REGIONs, should be TGU Block size aligned */
 #if DT_NODE_EXISTS(DT_NODELABEL(ns))
 #define NS_REGION_0_BASE DT_REG_ADDR(DT_NODELABEL(ns))
